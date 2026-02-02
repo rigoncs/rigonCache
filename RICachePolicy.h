@@ -1,7 +1,6 @@
 # pragma once
 
-namespace RigonCache
-{
+namespace RigonCache {
 
     template <typename Key, typename Value>
     class RICachePolicy {
