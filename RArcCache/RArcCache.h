@@ -14,7 +14,7 @@ namespace RigonCache {
             : capacity_(capacity),
         transformThreshold_(transformThreshold),
         lruPart_(std::make_unique<ArcLruPart<Key, Value>>(capacity, transformThreshold)),
-        lfuPart_(std::make_unique<LFUPart<Key, Value>>(capacity, transformThreshold))
+        lfuPart_(std::make_unique<ArcLfuPart<Key, Value>>(capacity, transformThreshold))
         {}
 
         ~RArcCache() override = default;

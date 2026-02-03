@@ -13,6 +13,63 @@ namespace RigonCache {
         using NodePtr = std::shared_ptr<NodeType>;
         using NodeMap = std::unordered_map<Key, NodePtr>;
 
+        explicit ArcLruPart(size_t capacity, size_t transformThreshold)
+        : capacity_(capacity)
+        , ghostCapacity_(capacity)
+        , transformThreshold_(transformThreshold)
+        {
+            initializeLists();
+        }
+
+        bool put(Key key, Value value)
+        {
+            if (capacity_ == 0) return false;
+
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto it = mainCache_.find(key);
+            if (it != mainCache_.end())
+            {
+                return updateExistingNode(it->second, value);
+            }
+            return addNewNode(key, value);
+        }
+
+        bool get(Key key, Value& value, bool& shouldTransform)
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto it = mainCache_.find(key);
+            if (it != mainCache_.end())
+            {
+                shouldTransform = updateNodeAccess(it->second);
+                value = it->second->getValue();
+                return true;
+            }
+            return false;
+        }
+
+        bool checkGhost(Key key)
+        {
+            auto it = ghostCache_.find(key);
+            if (it != ghostCache_.end()) {
+                removeFromGhost(it->second);
+                ghostCache_.erase(it);
+                return true;
+            }
+            return false;
+        }
+
+        void increaseCapacity() { ++capacity_; }
+
+        bool decreaseCapacity()
+        {
+            if (capacity_ <= 0) return false;
+            if (mainCache_.size() == capacity_) {
+                evictLeastRecent();
+            }
+            --capacity_;
+            return true;
+        }
+
     private:
         void initializeLists() {
             mainHead_ = std::make_shared<NodeType>();
