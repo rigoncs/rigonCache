@@ -3,6 +3,7 @@
 
 #include "RArcLruPart.h"
 #include "../RICachePolicy.h"
+#include "RArcLfuPart.h"
 
 namespace RigonCache {
 
