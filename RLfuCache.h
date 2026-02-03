@@ -110,7 +110,7 @@ namespace RigonCache {
             std::lock_guard<std::mutex> lock(mutex_);
             auto it = nodeMap_.find(key);
             if (it == nodeMap_.end()) {
-                getInternal(key, value);
+                getInternal(it->second, value);
                 return true;
             }
             return false;
